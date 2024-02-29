@@ -7,6 +7,9 @@ before:
 builds:
   - main: "./main.go"
     binary: goinit
+    env:
+      - CGO_ENABLED=0
+      - GOTOOLCHAIN=1.22.0
     goos:
       - linux
       - windows
