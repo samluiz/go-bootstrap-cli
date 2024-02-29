@@ -12,14 +12,15 @@ import (
 	"github.com/samluiz/goinit/internal/cli/options/orms"
 	"github.com/samluiz/goinit/internal/cli/options/servers"
 	"github.com/samluiz/goinit/internal/cli/options/sqlcodegens"
+	"github.com/samluiz/goselcli/menu"
 )
 
 func Run(in io.Reader) {
 	scanner := bufio.NewScanner(in)
 
-	fmt.Println(goterm.Color(goterm.Bold("Welcome to the Go Starter CLI!\n"), goterm.CYAN))
+	fmt.Println(goterm.Color(goterm.Bold("\nWelcome to the Goinit CLI!\n"), goterm.CYAN))
 
-	fmt.Printf("\n%s\n", goterm.Color(goterm.Bold("Enter your new module name:"), goterm.CYAN))
+	fmt.Printf("\n%s\n", goterm.Color(goterm.Bold("Enter your new module name (eg: github.com/owner/repo):"), goterm.CYAN))
 	scanner.Scan()
 	module := scanner.Text()
 
@@ -49,25 +50,25 @@ func Run(in io.Reader) {
 }
 
 func getServer() servers.ServerModule {
-	menu := NewMenu("Select your web server")
+	m := menu.NewMenu("Select your web server")
 
 	for _, server := range servers.Servers {
-		menu.addOption(server.Name, server.ID)
+		m.AddOption(server.Name, server.ID)
 	}
 
-	choice := menu.Display()
+	choice := m.Display()
 
 	return servers.GetServerById(choice)
 }
 
 func getDatabaseModule() databases.DatabaseModule {
-	menu := NewMenu("Select your database (if any)")
+	m := menu.NewMenu("Select your database (if any)")
 
 	for _, db := range databases.Databases {
-		menu.addOption(db.Name, db.ID)
+		m.AddOption(db.Name, db.ID)
 	}
 
-	database := menu.Display()
+	database := m.Display()
 
 	return databases.GetDatabaseModuleById(database)
 }
@@ -79,13 +80,13 @@ func getDriverExtension(database databases.DatabaseModule) drivers.DriverExtensi
 		return drivers.NO_DRIVER_EXT
 	}
 
-	menu := NewMenu("Select your database driver extension (if any)")
+	m := menu.NewMenu("Select your database driver extension (if any)")
 
 	for _, driver := range drivers.DriverExtensions {
-		menu.addOption(driver.Name, driver.ID)
+		m.AddOption(driver.Name, driver.ID)
 	}
 
-	choice := menu.Display()
+	choice := m.Display()
 
 	return drivers.GetDriverExtensionModuleById(choice)
 }
@@ -96,13 +97,13 @@ func getSqlCodegens(database databases.DatabaseModule) sqlcodegens.SQLCodeGenMod
 		return sqlcodegens.NO_SQL_CODEGEN
 	}
 
-	menu := NewMenu("Select your SQL code generator (if any)")
+	m := menu.NewMenu("Select your SQL code generator (if any)")
 
 	for _, sqlCodeGen := range sqlcodegens.SQLCodeGens {
-		menu.addOption(sqlCodeGen.Name, sqlCodeGen.ID)
+		m.AddOption(sqlCodeGen.Name, sqlCodeGen.ID)
 	}
 
-	sqlCodeGen := menu.Display()
+	sqlCodeGen := m.Display()
 
 	return sqlcodegens.GetSQLCodeGenModuleById(sqlCodeGen)
 }

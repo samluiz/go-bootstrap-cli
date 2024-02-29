@@ -9,6 +9,15 @@ import (
 	"github.com/samluiz/goinit/internal/cli"
 )
 
+const banner string = `
+#####    #####     ######  ##   ##   ######  ######## 
+##   ##  ### ###     ##    ###  ##     ##    ######## 
+##       ##   ##     ##    #### ##     ##       ##    
+## ####  ##   ##     ##    #######     ##       ##    
+##   ##  ##   ##     ##    ## ####     ##       ##    
+##   ##  ### ###     ##    ##  ###     ##       ##    
+ #####    #####    ######  ##   ##   ######     ##`
+
 var (
 	displayVersion bool
 	version        string
@@ -28,22 +37,13 @@ func parseFlag(args []string) {
 	}
 }
 
-func getBanner() string {
-	banner, err := os.ReadFile("banner.txt")
-	if err != nil {
-		return "Error reading banner.txt"
-	}
-	return string(banner)
-}
-
 func init() {
 	parseFlag(os.Args)
 	flag.Parse()
 }
 
 func main() {
-	banner := getBanner()
-	fmt.Println(banner)
+	fmt.Print(banner)
 	if displayVersion {
 		fmt.Println(version)
 		return
