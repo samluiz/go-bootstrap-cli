@@ -64,7 +64,7 @@ func main() {
 	versionInfo := GetVersionInfo()
 	fmt.Print(banner)
 	if displayVersion {
-		fmt.Printf("\nversion: %s\ngo Version: %s\n", versionInfo.goinitversion, versionInfo.goversion)
+		fmt.Printf("\nversion: %s\ngo version: %s\n", versionInfo.goinitversion, versionInfo.goversion)
 		return
 	}
 	cli.Run(os.Stdin)

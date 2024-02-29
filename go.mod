@@ -4,7 +4,7 @@ go 1.22.0
 
 require (
 	github.com/buger/goterm v1.0.4
-	github.com/samluiz/goselcli v0.1.2
+	github.com/samluiz/goselcli v0.1.4
 )
 
 require (

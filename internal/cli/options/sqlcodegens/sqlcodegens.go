@@ -12,38 +12,28 @@ var (
 		Package: "",
 		ID:      "0",
 	}
-	SQLC = SQLCodeGenModule{
-		Name:    "SQLC",
-		Package: "github.com/kyleconroy/sqlc",
-		ID:      "1",
-	}
 	SQUIRREL = SQLCodeGenModule{
 		Name:    "Squirrel",
 		Package: "github.com/Masterminds/squirrel",
-		ID:      "2",
+		ID:      "1",
 	}
 	SQLZ = SQLCodeGenModule{
 		Name:    "SQLZ",
-		Package: "github.com/ulule/sqlz",
-		ID:      "3",
+		Package: "github.com/ido50/sqlz",
+		ID:      "2",
 	}
 	GOQU = SQLCodeGenModule{
 		Name:    "Goqu",
-		Package: "github.com/doug-martin/goqu",
-		ID:      "4",
-	}
-	HOOD = SQLCodeGenModule{
-		Name:    "Hood",
-		Package: "github.com/eaigner/hood",
-		ID:      "5",
+		Package: "github.com/doug-martin/goqu/v9",
+		ID:      "3",
 	}
 )
 
 var SQLCodeGens = []SQLCodeGenModule{
 	NO_SQL_CODEGEN,
-	SQLC,
 	SQUIRREL,
 	SQLZ,
+	GOQU,
 }
 
 func GetSQLCodeGenModuleById(id string) SQLCodeGenModule {
@@ -51,11 +41,11 @@ func GetSQLCodeGenModuleById(id string) SQLCodeGenModule {
 	case "0":
 		return NO_SQL_CODEGEN
 	case "1":
-		return SQLC
-	case "2":
 		return SQUIRREL
-	case "3":
+	case "2":
 		return SQLZ
+	case "3":
+		return GOQU
 	default:
 		return SQLCodeGenModule{}
 	}
