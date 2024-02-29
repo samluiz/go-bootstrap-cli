@@ -5,7 +5,7 @@ before:
     - go mod tidy
 
 builds:
-  - main: "./main.go"
+  - main: "."
     ldflags:
       - -s -w -X "main.goversion={{.Env.GO_VERSION}}"
       - -s -w -X "main.goinitversion={{.Env.GIT_TAG}}"
