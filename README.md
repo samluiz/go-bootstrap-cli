@@ -7,7 +7,7 @@ CLI that generates a go project with the most common stacks of your choice.
 First, make sure that you have Go installed an GOPATH set in your machine.
 
 ```
-go get github.com/samluiz/goinit@latest
+go install github.com/samluiz/goinit@latest
 
 goinit -v
 ```
