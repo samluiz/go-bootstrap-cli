@@ -1,4 +1,4 @@
-package options
+package databases
 
 type DatabaseModule struct {
 	Name    string
@@ -22,22 +22,31 @@ var (
 		Package: "github.com/lib/pq",
 		ID:      "2",
 	}
+	POSTGRES_PGX = DatabaseModule{
+		Name:    "Postgres with PGX",
+		Package: "github.com/jackc/pgx/v4",
+		ID:      "3",
+	}
 	SQLITE = DatabaseModule{
 		Name:    "SQLite",
 		Package: "github.com/mattn/go-sqlite3",
-		ID:      "3",
+		ID:      "4",
 	}
 	MONGODB = DatabaseModule{
 		Name:    "MongoDB",
 		Package: "go.mongodb.org/mongo-driver/mongo",
-		ID:      "4",
-	}
-	REDIS = DatabaseModule{
-		Name:    "Redis",
-		Package: "github.com/go-redis/redis/v8",
 		ID:      "5",
 	}
 )
+
+var Databases = []DatabaseModule{
+	NO_DATABASE,
+	MYSQL,
+	POSTGRES,
+	POSTGRES_PGX,
+	SQLITE,
+	MONGODB,
+}
 
 func GetDatabaseModuleById(id string) DatabaseModule {
 	switch id {
@@ -48,20 +57,11 @@ func GetDatabaseModuleById(id string) DatabaseModule {
 	case "2":
 		return POSTGRES
 	case "3":
-		return SQLITE
+		return POSTGRES_PGX
 	case "4":
-		return MONGODB
+		return SQLITE
 	case "5":
-		return REDIS
+		return MONGODB
 	}
 	return DatabaseModule{}
-
-}
-
-func GetDatabaseModuleNameById(id string) string {
-	return GetDatabaseModuleById(id).Name
-}
-
-func (m *DatabaseModule) GetDatabaseModulePackageById(id string) string {
-	return GetDatabaseModuleById(id).Package
 }

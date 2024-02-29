@@ -1,25 +1,17 @@
 package commands
 
 import (
-	"errors"
 	"fmt"
+	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
+
+	"github.com/buger/goterm"
 )
 
-func createProjectDir(dir string) (string, error) {
-	err := os.Mkdir(dir, 0777)
-
-	if err != nil {
-		return "", err
-	}
-
-	return filepath.Abs(dir)
-}
-
-func GenerateGoProject(module string, packages []string) {
+func CreateProjectDir(module string) (string, string, error) {
 	var dir string
 
 	if strings.Contains(module, "/") {
@@ -29,31 +21,40 @@ func GenerateGoProject(module string, packages []string) {
 		dir = module
 	}
 
-	fullPath, err := createProjectDir(dir)
+	err := os.Mkdir(dir, 0777)
+
 	if err != nil {
-		if errors.Is(err, os.ErrExist) {
-			fmt.Printf("Directory %s already exists\n", fullPath)
-			return
+		if os.IsExist(err) {
+			log.Fatal(goterm.Color(fmt.Sprintf("\nDirectory %s already exists\n", dir), goterm.RED))
+			Fatal("", err)
 		}
-		exitOnError(fullPath, err)
+		log.Fatal(goterm.Color(fmt.Sprintf("\nError while creating directory: %s\n", err), goterm.RED))
 	}
 
-	fmt.Printf("1. Created directory: %s\n", fullPath)
+	fullPath, err := filepath.Abs(dir)
 
-	err = os.Chdir(dir)
 	if err != nil {
-		exitOnError(fullPath, err)
+		Fatal(dir, err)
+	}
+
+	return fullPath, dir, nil
+}
+
+func GenerateGoProject(module string, dir string, fullPath string, packages []string) {
+	err := os.Chdir(fullPath)
+	if err != nil {
+		Fatal(fullPath, err)
 	}
 
 	cmd := exec.Command("go", "mod", "init", module)
 	out, err := cmd.CombinedOutput()
 
 	if err != nil {
-		exitOnError(fullPath, err)
+		Fatal(fullPath, err)
 	}
 
 	fmt.Println(string(out))
-	fmt.Println("2. Initialized go module.")
+	fmt.Println(goterm.Color("Initialized go module.\n\n", goterm.BLUE))
 
 	toolsContent := `
 //go:build tools
@@ -70,10 +71,11 @@ import (
 		if pkg == "" {
 			continue
 		}
+		fmt.Println(goterm.Color("\nInstalling packages...\n", goterm.BLUE))
 		output, err := installPackage(pkg)
 
 		if err != nil {
-			fmt.Printf("Error installing package %s: %s\n", pkg, err)
+			fmt.Println(goterm.Color(fmt.Sprintf("\nError installing package %s: %s\n", pkg, err), goterm.RED))
 			continue
 		}
 
@@ -85,31 +87,34 @@ import (
 
 	toolsFile, err := os.Create("tools.go")
 	if err != nil {
-		exitOnError(fullPath, err)
+		Fatal(fullPath, err)
 	}
 	err = os.Chmod("tools.go", 0777)
 	if err != nil {
-		exitOnError(fullPath, err)
+		Fatal(fullPath, err)
 	}
 
 	defer toolsFile.Close()
 
 	_, err = toolsFile.WriteString(toolsContent)
 	if err != nil {
-		exitOnError(fullPath, err)
+		Fatal(fullPath, err)
 	}
 
-	fmt.Println("3. Packages installed successfully.")
+	fmt.Println(goterm.Color("Packages installed successfully.\n", goterm.BLUE))
 
 	cmd = exec.Command("go", "mod", "tidy")
 	out, err = cmd.CombinedOutput()
 
 	if err != nil {
-		exitOnError(fullPath, err)
+		Fatal(fullPath, err)
 	}
 
 	fmt.Println(string(out))
-	fmt.Println("4. Module is ready. Happy coding!")
+	fmt.Println(goterm.Color("Project is ready.\n", goterm.BLUE))
+	fmt.Println(goterm.Color(fmt.Sprintf("\nYou can now run `cd %s`\n", dir), goterm.BLUE))
+	fmt.Println(goterm.Color("\nThe packages are imported in the tools.go file, you can delete this file after you import them in other files.\n", goterm.BLUE))
+	fmt.Println(goterm.Color("\nHappy coding!\n", goterm.CYAN))
 }
 
 func installPackage(pkg string) (string, error) {
@@ -123,11 +128,12 @@ func installPackage(pkg string) (string, error) {
 	return string(out), nil
 }
 
-func exitOnError(dir string, err error) {
-	fmt.Println(err)
-	errRemove := os.RemoveAll(dir)
-	if errRemove != nil {
-		fmt.Printf("Error removing directory: %s\n", errRemove)
+func Fatal(dir string, err error) {
+	if dir != "" {
+		errRemove := os.RemoveAll(dir)
+		if errRemove != nil {
+			fmt.Println(goterm.Color(fmt.Sprintf("Error removing directory: %s\n", errRemove), goterm.RED))
+		}
 	}
-	panic(err)
+	log.Fatal(goterm.Color(fmt.Sprintf("Error: %s\n", err), goterm.RED))
 }

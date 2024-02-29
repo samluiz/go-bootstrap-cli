@@ -55,8 +55,8 @@ func (m *Menu) RenderMenuOptions(rerender bool) {
 		optionText := option.Text
 		cursor := " "
 		if i == m.CursorPos {
-			cursor = goterm.Color(">", goterm.GREEN)
-			optionText = goterm.Color(optionText, goterm.GREEN)
+			cursor = goterm.Color(">", goterm.BLUE)
+			optionText = goterm.Color(optionText, goterm.BLUE)
 		}
 
 		fmt.Printf("\r%s %s%s", cursor, optionText, newline)
@@ -70,7 +70,7 @@ func (m *Menu) Display() string {
 
 	var option string
 
-	fmt.Printf("%s\n", goterm.Color(goterm.Bold(m.Prompt)+":", goterm.CYAN))
+	fmt.Printf("\n%s\n", goterm.Color(goterm.Bold(m.Prompt)+":", goterm.CYAN))
 
 	m.RenderMenuOptions(false)
 

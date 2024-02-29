@@ -1,70 +1,84 @@
-package options
+package servers
 
-type WebServerModule struct {
+type ServerModule struct {
 	Name    string
 	Package string
 	ID      string
 }
 
 var (
-	STDLIB = WebServerModule{
+	STDLIB = ServerModule{
 		Name:    "Standard Library",
 		Package: "",
 		ID:      "0",
 	}
-	FIBER = WebServerModule{
+	FIBER = ServerModule{
 		Name:    "Fiber",
 		Package: "github.com/gofiber/fiber/v2",
 		ID:      "1",
 	}
-	GIN = WebServerModule{
+	GIN = ServerModule{
 		Name:    "Gin",
 		Package: "github.com/gin-gonic/gin",
 		ID:      "2",
 	}
-	CHI = WebServerModule{
+	CHI = ServerModule{
 		Name:    "Chi",
-		Package: "github.com/go-chi/chi",
+		Package: "github.com/go-chi/chi/v5",
 		ID:      "3",
 	}
-	ECHO = WebServerModule{
+	ECHO = ServerModule{
 		Name:    "Echo",
 		Package: "github.com/labstack/echo/v4",
 		ID:      "4",
 	}
-	GORILLA = WebServerModule{
+	GORILLA = ServerModule{
 		Name:    "Gorilla",
 		Package: "github.com/gorilla/mux",
 		ID:      "5",
 	}
-	IRIS = WebServerModule{
+	IRIS = ServerModule{
 		Name:    "Iris",
 		Package: "github.com/kataras/iris/v12",
 		ID:      "6",
 	}
-	MUX = WebServerModule{
+	MUX = ServerModule{
 		Name:    "Mux",
 		Package: "github.com/gorilla/mux",
 		ID:      "7",
 	}
-	AERO = WebServerModule{
+	AERO = ServerModule{
 		Name:    "Aero",
 		Package: "github.com/aerogo/aero",
 		ID:      "8",
 	}
-	FASTHTTP = WebServerModule{
+	FASTHTTP = ServerModule{
 		Name:    "FastHTTP",
 		Package: "github.com/valyala/fasthttp",
 		ID:      "9",
 	}
-	BEEGO = WebServerModule{
+	BEEGO = ServerModule{
 		Name:    "Beego",
 		Package: "github.com/astaxie/beego",
 		ID:      "10",
 	}
 )
 
-func GetServerById(id string) WebServerModule {
+var Servers = []ServerModule{
+	STDLIB,
+	FIBER,
+	GIN,
+	CHI,
+	ECHO,
+	GORILLA,
+	IRIS,
+	MUX,
+	AERO,
+	FASTHTTP,
+	BEEGO,
+}
+
+func GetServerById(id string) ServerModule {
 	switch id {
 	case "0":
 		return STDLIB
@@ -89,14 +103,6 @@ func GetServerById(id string) WebServerModule {
 	case "10":
 		return BEEGO
 	default:
-		return WebServerModule{}
+		return ServerModule{}
 	}
-}
-
-func GetServerNameById(id string) string {
-	return GetServerById(id).Name
-}
-
-func (m *WebServerModule) GetServerPackageByServerId(id string) string {
-	return GetServerById(id).Package
 }

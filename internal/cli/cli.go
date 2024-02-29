@@ -6,99 +6,103 @@ import (
 	"io"
 
 	"github.com/buger/goterm"
-	"github.com/samluiz/go-bootstrap-cli/internal/cli/commands"
-	"github.com/samluiz/go-bootstrap-cli/internal/cli/options"
+	"github.com/samluiz/goinit/internal/cli/commands"
+	"github.com/samluiz/goinit/internal/cli/options/databases"
+	"github.com/samluiz/goinit/internal/cli/options/drivers"
+	"github.com/samluiz/goinit/internal/cli/options/orms"
+	"github.com/samluiz/goinit/internal/cli/options/servers"
+	"github.com/samluiz/goinit/internal/cli/options/sqlcodegens"
 )
 
 func Run(in io.Reader) {
 	scanner := bufio.NewScanner(in)
 
-	fmt.Println("Welcome to the Go Starter CLI!")
+	fmt.Println(goterm.Color(goterm.Bold("Welcome to the Go Starter CLI!\n"), goterm.CYAN))
 
-	fmt.Printf("%s\n", goterm.Color(goterm.Bold("Enter your new module name:"), goterm.CYAN))
+	fmt.Printf("\n%s\n", goterm.Color(goterm.Bold("Enter your new module name:"), goterm.CYAN))
 	scanner.Scan()
 	module := scanner.Text()
 
-	server := getServer()
-	database := getDatabaseModule()
-	sqlTool, queryBuilder := getSqlTools(database.ID)
-
-	if sqlTool.ID == options.PGX.ID {
-		database.Package = ""
+	fullPath, dir, err := commands.CreateProjectDir(module)
+	if err != nil {
+		commands.Fatal(fullPath, err)
 	}
 
-	fmt.Println("Scaffolding your project...")
+	fmt.Println(goterm.Color(fmt.Sprintf("Created directory: %s\n", fullPath), goterm.BLUE))
 
-	packages := []string{server.Package, database.Package, sqlTool.Package, queryBuilder.Package}
+	var server servers.ServerModule
+	var database databases.DatabaseModule
+	var driver drivers.DriverExtensionModule
+	var orm orms.ORMModule
+	var sqlCodeGen sqlcodegens.SQLCodeGenModule
 
-	commands.GenerateGoProject(module, packages)
+	server = getServer()
+	database = getDatabaseModule()
+	driver = getDriverExtension(database)
+	sqlCodeGen = getSqlCodegens(database)
+
+	fmt.Println(goterm.Color(goterm.Bold("Generating your project..."), goterm.CYAN))
+
+	packages := []string{server.Package, database.Package, driver.Package, orm.Package, sqlCodeGen.Package}
+
+	commands.GenerateGoProject(module, dir, fullPath, packages)
 }
 
-func getServer() options.WebServerModule {
+func getServer() servers.ServerModule {
 	menu := NewMenu("Select your web server")
 
-	menu.addOption(options.STDLIB.Name, options.STDLIB.ID)
-	menu.addOption(options.FIBER.Name, options.FIBER.ID)
-	menu.addOption(options.GIN.Name, options.GIN.ID)
-	menu.addOption(options.CHI.Name, options.CHI.ID)
-	menu.addOption(options.ECHO.Name, options.ECHO.ID)
-	menu.addOption(options.GORILLA.Name, options.GORILLA.ID)
-	menu.addOption(options.IRIS.Name, options.IRIS.ID)
-	menu.addOption(options.MUX.Name, options.MUX.ID)
-	menu.addOption(options.AERO.Name, options.AERO.ID)
-	menu.addOption(options.FASTHTTP.Name, options.FASTHTTP.ID)
-	menu.addOption(options.BEEGO.Name, options.BEEGO.ID)
+	for _, server := range servers.Servers {
+		menu.addOption(server.Name, server.ID)
+	}
 
 	choice := menu.Display()
 
-	return options.GetServerById(choice)
+	return servers.GetServerById(choice)
 }
 
-func getDatabaseModule() options.DatabaseModule {
-	menu := NewMenu("Select your database")
+func getDatabaseModule() databases.DatabaseModule {
+	menu := NewMenu("Select your database (if any)")
 
-	menu.addOption(options.NO_DATABASE.Name, options.NO_DATABASE.ID)
-	menu.addOption(options.MYSQL.Name, options.MYSQL.ID)
-	menu.addOption(options.POSTGRES.Name, options.POSTGRES.ID)
-	menu.addOption(options.SQLITE.Name, options.SQLITE.ID)
-	menu.addOption(options.MONGODB.Name, options.MONGODB.ID)
-	menu.addOption(options.REDIS.Name, options.REDIS.ID)
+	for _, db := range databases.Databases {
+		menu.addOption(db.Name, db.ID)
+	}
+
+	database := menu.Display()
+
+	return databases.GetDatabaseModuleById(database)
+}
+
+func getDriverExtension(database databases.DatabaseModule) drivers.DriverExtensionModule {
+	if database.ID == databases.NO_DATABASE.ID ||
+		database.ID == databases.POSTGRES_PGX.ID ||
+		database.ID == databases.MONGODB.ID {
+		return drivers.NO_DRIVER_EXT
+	}
+
+	menu := NewMenu("Select your database driver extension (if any)")
+
+	for _, driver := range drivers.DriverExtensions {
+		menu.addOption(driver.Name, driver.ID)
+	}
 
 	choice := menu.Display()
 
-	return options.GetDatabaseModuleById(choice)
+	return drivers.GetDriverExtensionModuleById(choice)
 }
 
-func getSqlTools(databaseId string) (options.SQLToolModule, options.SQLToolModule) {
-	if databaseId == options.NO_DATABASE.ID {
-		return options.SQLToolModule{}, options.SQLToolModule{}
+func getSqlCodegens(database databases.DatabaseModule) sqlcodegens.SQLCodeGenModule {
+	if database.ID == databases.NO_DATABASE.ID ||
+		database.ID == databases.MONGODB.ID {
+		return sqlcodegens.NO_SQL_CODEGEN
 	}
 
-	menu := NewMenu("Select your SQL tool")
+	menu := NewMenu("Select your SQL code generator (if any)")
 
-	menu.addOption(options.NO_SQL_TOOL.Name, options.NO_SQL_TOOL.ID)
-	menu.addOption(options.SQLX.Name, options.SQLX.ID)
-	if databaseId == options.POSTGRES.ID {
-		menu.addOption(options.PGX.Name, options.PGX.ID)
-	}
-	menu.addOption(options.GORM.Name, options.GORM.ID)
-	menu.addOption(options.SQLBOILER.Name, options.SQLBOILER.ID)
-	menu.addOption(options.ENT.Name, options.ENT.ID)
-
-	sqlTool := options.GetSQLToolById(menu.Display())
-
-	menu = NewMenu("Select a query builder")
-
-	if sqlTool.ID == options.GORM.ID || sqlTool.ID == options.ENT.ID || sqlTool.ID == options.SQLBOILER.ID {
-		return sqlTool, options.SQLToolModule{}
+	for _, sqlCodeGen := range sqlcodegens.SQLCodeGens {
+		menu.addOption(sqlCodeGen.Name, sqlCodeGen.ID)
 	}
 
-	menu.addOption(options.NO_SQL_TOOL.Name, options.NO_SQL_TOOL.ID)
-	menu.addOption(options.SQLC.Name, options.SQLC.ID)
-	menu.addOption(options.SQUIRREL.Name, options.SQUIRREL.ID)
-	menu.addOption(options.SQLZ.Name, options.SQLZ.ID)
+	sqlCodeGen := menu.Display()
 
-	queryBuilder := options.GetSQLToolById(menu.Display())
-
-	return sqlTool, queryBuilder
+	return sqlcodegens.GetSQLCodeGenModuleById(sqlCodeGen)
 }

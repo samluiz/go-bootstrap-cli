@@ -1,4 +1,4 @@
-module github.com/samluiz/go-bootstrap-cli
+module github.com/samluiz/goinit
 
 go 1.22
 
