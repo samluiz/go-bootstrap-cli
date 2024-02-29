@@ -52,7 +52,8 @@ func GenerateGoProject(module string, packages []string) {
 		exitOnError(fullPath, err)
 	}
 
-	fmt.Printf("2. Initialized go module: %s\n", string(out))
+	fmt.Println(string(out))
+	fmt.Println("2. Initialized go module.")
 
 	toolsContent := `
 //go:build tools
@@ -63,12 +64,24 @@ import (
 	%s
 )
 `
+	var pkgContent strings.Builder
 
 	for _, pkg := range packages {
-		output, _ := installPackage(pkg)
+		if pkg == "" {
+			continue
+		}
+		output, err := installPackage(pkg)
+
+		if err != nil {
+			fmt.Printf("Error installing package %s: %s\n", pkg, err)
+			continue
+		}
+
 		fmt.Println(output)
-		toolsContent = fmt.Sprintf(toolsContent, fmt.Sprintf("\n\t_ \"%s\"", pkg))
+		pkgContent.WriteString(fmt.Sprintf("\n\t_ \"%s\"", pkg))
 	}
+
+	toolsContent = fmt.Sprintf(toolsContent, pkgContent.String())
 
 	toolsFile, err := os.Create("tools.go")
 	if err != nil {
@@ -86,6 +99,8 @@ import (
 		exitOnError(fullPath, err)
 	}
 
+	fmt.Println("3. Packages installed successfully.")
+
 	cmd = exec.Command("go", "mod", "tidy")
 	out, err = cmd.CombinedOutput()
 
@@ -98,9 +113,6 @@ import (
 }
 
 func installPackage(pkg string) (string, error) {
-	if pkg == "" {
-		return "", nil
-	}
 	cmd := exec.Command("go", "get", pkg)
 	out, err := cmd.CombinedOutput()
 
@@ -112,6 +124,7 @@ func installPackage(pkg string) (string, error) {
 }
 
 func exitOnError(dir string, err error) {
+	fmt.Println(err)
 	errRemove := os.RemoveAll(dir)
 	if errRemove != nil {
 		fmt.Printf("Error removing directory: %s\n", errRemove)
