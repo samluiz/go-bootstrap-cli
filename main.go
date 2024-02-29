@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"runtime"
+	"runtime/debug"
 
 	"github.com/samluiz/goinit/internal/cli"
 )
@@ -18,10 +20,26 @@ const banner string = `
 ##   ##  ### ###     ##    ##  ###     ##       ##    
  #####    #####    ######  ##   ##   ######     ##`
 
-var (
-	displayVersion bool
-	version        string
-)
+var displayVersion bool
+
+func GetVersionInfo() versionInfo {
+	if len(goinitversion) != 0 && len(goversion) != 0 {
+		return versionInfo{
+			goinitversion: goinitversion,
+			goversion:     goversion,
+		}
+	}
+	if info, ok := debug.ReadBuildInfo(); ok {
+		return versionInfo{
+			goinitversion: info.Main.Version,
+			goversion:     runtime.Version(),
+		}
+	}
+	return versionInfo{
+		goinitversion: "(unknown)",
+		goversion:     runtime.Version(),
+	}
+}
 
 func helpMessage() {
 	fmt.Println("Usage: goinit [flags]")
@@ -43,9 +61,10 @@ func init() {
 }
 
 func main() {
+	versionInfo := GetVersionInfo()
 	fmt.Print(banner)
 	if displayVersion {
-		fmt.Println(version)
+		fmt.Printf("\nversion: %s\ngo Version: %s\n", versionInfo.goinitversion, versionInfo.goversion)
 		return
 	}
 	cli.Run(os.Stdin)
