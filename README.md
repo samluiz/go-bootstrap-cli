@@ -1,4 +1,4 @@
-# goinit
+# Goinit
 
 CLI that generates a go project with the most common stacks of your choice.
 
